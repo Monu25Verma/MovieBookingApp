@@ -6,8 +6,12 @@ class MovieSerializer(serializers.ModelSerializer):
         model = Movie
         fields = ['id', 'movie_name', 'theatre_name', 'tickets_allocated']
 
-
 class MovieSerializerwithoutid(serializers.ModelSerializer):
     class Meta:
         model = Movie
         fields = ['movie_name', 'theatre_name', 'tickets_allocated']
+
+class MovieSerializeridname(serializers.ModelSerializer):
+    class Meta:
+        model = Movie
+        fields = ['id','movie_name']

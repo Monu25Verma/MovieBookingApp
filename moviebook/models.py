@@ -4,4 +4,4 @@ from django.db import models
 class Movie(models.Model):
     movie_name = models.CharField(max_length=100)
     theatre_name = models.CharField(max_length=100)
-    tickets_allocated = models.IntegerField()
+    tickets_allocated = models.IntegerField() 

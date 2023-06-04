@@ -2,7 +2,7 @@ from django.http import JsonResponse
 from .models import Movie
 from rest_framework import viewsets
 from rest_framework.decorators import action
-from .serializer import MovieSerializer,MovieSerializerwithoutid
+from .serializer import MovieSerializer,MovieSerializerwithoutid, MovieSerializeridname
 
 # Create your views here.
 class MovieView(viewsets.ModelViewSet):
@@ -27,7 +27,7 @@ class MovieView(viewsets.ModelViewSet):
         return JsonResponse(movie_serialized.data, safe=False) #serialize
     
     @action(detail=False, methods=['get'])
-    def search_particularid_movie(self,request,**kwargs):
-        movies = Movie.objects.filter(id = int(kwargs['id'])) #database call
-        movie_serialized = MovieSerializer(movies,many = True) #deserialize
+    def search_with_theatername_movie(self,request,**kwargs):
+        movies = Movie.objects.filter(theatre_name__contains =str(kwargs['theatre_name']))  #database call
+        movie_serialized = MovieSerializeridname(movies,many = True) #deserialize
         return JsonResponse(movie_serialized.data, safe=False) #serialize
