@@ -10,6 +10,6 @@ class Movies(models.Model):
 class Tickets(models.Model):
     movie_id  = models.ForeignKey(Movies, on_delete=models.CASCADE)
     no_of_tickets = models.IntegerField()
-    seat_number = models.IntegerField()
+    seat_number = models.CharField()
 
     

@@ -3,8 +3,16 @@ from .models import Movies, Tickets
 from rest_framework import viewsets
 from rest_framework.decorators import action
 import logging as logger
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404,render
 from .serializer import MovieSerializer,MovieSerializerwithoutid, MovieSerializeridname,TicketSerializer
+import matplotlib.pyplot as plt
+import base64
+from io import BytesIO
+# import numpy as np
+# from mpl_toolkits import mplot3d
+
+fig = plt.figure()
+ax = plt.axes(projection='3d')
 
 # Create your views here.
 class MovieView(viewsets.ModelViewSet):
@@ -106,6 +114,69 @@ class MovieViewSetAdmin(viewsets.ViewSet):
             'ticket_status': status
         }
         return JsonResponse(response_data)
+    
+class GraphView(viewsets.ModelViewSet):
+    @action(detail=False, methods=['get'])
+
+    def all_movies_with_tickets(self,request):
+        try:
+            movies = Movies.objects.all()
+            movie_data = {}
+
+            for movie in movies:
+                tickets = Tickets.objects.filter(movie_id=movie)
+                total_tickets_sold = sum(ticket.no_of_tickets for ticket in tickets)
+                movie_data[movie.movie_name] = total_tickets_sold
+            print('Reached Successfully')
+            # Create the bar graph
+            plt.figure(figsize=(10, 6))
+            plt.bar(movie_data.keys(), movie_data.values(), color='skyblue')
+            plt.xlabel('Movie')
+            plt.ylabel('Tickets Sold')
+            plt.title('Tickets Sold for Each Movie')
+            plt.xticks(rotation=45, ha='right')
+            plt.tight_layout()
+
+            # Save the plot to a BytesIO buffer
+            buffer = BytesIO()
+            plt.savefig(buffer, format='png')
+            buffer.seek(0)
+            plt.close()
+
+            # Encode the image as base64
+            encoded_image = base64.b64encode(buffer.getvalue()).decode('utf-8')
+
+            return render(request, 'graph_display.html', {'image': encoded_image})
+        except Exception as e:
+            return JsonResponse({'message':"not enough ticket available"}, status = 400)
+
+
+# class Graph3DView(viewsets.ModelViewSet):
+#     @action(detail=False, methods=['get'])
+#     def all_movies_with_tickets(self,request):
+#         try:
+#             movies = Movies.objects.all()
+#             movie_data = {}
+
+#             for movie in movies:
+#                 tickets = Tickets.objects.filter(movie_id=movie)
+#                 total_tickets_sold = sum(ticket.no_of_tickets for ticket in tickets)
+#                 movie_data[movie.movie_name] = total_tickets_sold
+#             print('Reached Successfully')
+
+
+# # Data for a three-dimensional line
+#             zline = np.linspace(0, 15, 1000)
+#             xline = np.sin(zline)
+#             yline = np.cos(zline)
+#             ax.plot3D(xline, yline, zline, 'gray')
+
+#             # Data for three-dimensional scattered points
+#             zdata = 15 * np.random.random(100)
+#             xdata = np.sin(zdata) + 0.1 * np.random.randn(100)
+#             ydata = np.cos(zdata) + 0.1 * np.random.randn(100)
+#             ax.scatter3D(xdata, ydata, zdata, c=zdata, cmap='Greens')
+
 
 
 
