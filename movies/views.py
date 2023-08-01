@@ -8,8 +8,8 @@ from .serializer import MovieSerializer,MovieSerializerwithoutid, MovieSerialize
 import matplotlib.pyplot as plt
 import base64
 from io import BytesIO
-# import numpy as np
-# from mpl_toolkits import mplot3d
+import numpy as np
+from mpl_toolkits import mplot3d
 
 fig = plt.figure()
 ax = plt.axes(projection='3d')
@@ -151,31 +151,50 @@ class GraphView(viewsets.ModelViewSet):
             return JsonResponse({'message':"not enough ticket available"}, status = 400)
 
 
-# class Graph3DView(viewsets.ModelViewSet):
-#     @action(detail=False, methods=['get'])
-#     def all_movies_with_tickets(self,request):
-#         try:
-#             movies = Movies.objects.all()
-#             movie_data = {}
+class Graph3DView(viewsets.ModelViewSet):
+    @action(detail=False, methods=['get'])
+    def all_movies_with_tickets(self,request):
+        try:
+            movies = Movies.objects.all()
+            movie_data = {}
 
-#             for movie in movies:
-#                 tickets = Tickets.objects.filter(movie_id=movie)
-#                 total_tickets_sold = sum(ticket.no_of_tickets for ticket in tickets)
-#                 movie_data[movie.movie_name] = total_tickets_sold
-#             print('Reached Successfully')
+            for movie in movies:
+                tickets = Tickets.objects.filter(movie_id=movie)
+                total_tickets_sold = sum(ticket.no_of_tickets for ticket in tickets)
+                movie_data[movie.movie_name] = total_tickets_sold
 
+            # Create the 3D bar graph
+            fig = plt.figure(figsize=(12, 8))
+            ax = fig.add_subplot(111, projection='3d')
+            x_pos = range(len(movie_data))
+            y_pos = [0]
+            z_pos = [0]
+            x_ticks_labels = list(movie_data.keys())
+            y_ticks_labels = [0]
 
-# # Data for a three-dimensional line
-#             zline = np.linspace(0, 15, 1000)
-#             xline = np.sin(zline)
-#             yline = np.cos(zline)
-#             ax.plot3D(xline, yline, zline, 'gray')
+            ax.bar3d(x_pos, y_pos, z_pos, dx=0.8, dy=0.8, dz=list(movie_data.values()))
 
-#             # Data for three-dimensional scattered points
-#             zdata = 15 * np.random.random(100)
-#             xdata = np.sin(zdata) + 0.1 * np.random.randn(100)
-#             ydata = np.cos(zdata) + 0.1 * np.random.randn(100)
-#             ax.scatter3D(xdata, ydata, zdata, c=zdata, cmap='Greens')
+            ax.set_xlabel('Movie')
+            ax.set_ylabel('Tickets Sold')
+            ax.set_zlabel('Number of Tickets')
+            ax.set_title('3D Bar Graph: Tickets Sold for Each Movie')
+            ax.set_xticks(x_pos)
+            ax.set_xticklabels(x_ticks_labels, rotation=45, ha='right')
+            ax.set_yticks(y_ticks_labels)
+
+            # Save the plot to a BytesIO buffer
+            buffer = BytesIO()
+            plt.savefig(buffer, format='png')
+            buffer.seek(0)
+            plt.close()
+
+            # Encode the image as base64
+            encoded_image = base64.b64encode(buffer.getvalue()).decode('utf-8')
+
+            return render(request, 'graph_3D.html', {'image': encoded_image})
+        except Exception as e:
+            print(e)
+            return JsonResponse({'message':"not enough ticket available"}, status = 400)
 
 
 
